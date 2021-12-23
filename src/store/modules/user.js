@@ -1,4 +1,5 @@
 import { login, logout, getInfo } from '@/api/login'
+import { listCampus } from "@/api/campus/campus"
 import { getToken, setToken, removeToken } from '@/utils/auth'
 
 const user = {
@@ -7,7 +8,8 @@ const user = {
     name: '',
     avatar: '',
     roles: [],
-    permissions: []
+    permissions: [],
+    campusList: []
   },
 
   mutations: {
@@ -25,6 +27,9 @@ const user = {
     },
     SET_PERMISSIONS: (state, permissions) => {
       state.permissions = permissions
+    },
+    SET_CAMPUSLIST: (state, campusList) => {
+      state.campusList = campusList
     }
   },
 
@@ -88,6 +93,18 @@ const user = {
         commit('SET_TOKEN', '')
         removeToken()
         resolve()
+      })
+    },
+
+    // 获取校区数据
+    GetCampus({ commit }, campusObj) {
+      return new Promise((resolve, reject) => {
+        listCampus(campusObj).then(res => {
+          commit('SET_TOKEN', res.token);
+          resolve();
+        }).catch(err => {
+          reject(err)
+        })
       })
     }
   }

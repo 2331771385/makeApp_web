@@ -18,8 +18,6 @@
 </template>
 
 <script>
-// fuse is a lightweight fuzzy-search module
-// make search results more in line with expectations
 import Fuse from 'fuse.js/dist/fuse.min.js'
 import path from 'path'
 
@@ -72,7 +70,6 @@ export default {
     change(val) {
       const path = val.path;
       if(this.ishttp(val.path)) {
-        // http(s):// 路径新窗口打开
         const pindex = path.indexOf("http");
         window.open(path.substr(pindex, path.length), "_blank");
       } else {
@@ -101,15 +98,10 @@ export default {
         }]
       })
     },
-    // Filter out the routes that can be displayed in the sidebar
-    // And generate the internationalized title
     generateRoutes(routes, basePath = '/', prefixTitle = []) {
       let res = []
-
       for (const router of routes) {
-        // skip hidden router
         if (router.hidden) { continue }
-
         const data = {
           path: !this.ishttp(router.path) ? path.resolve(basePath, router.path) : router.path,
           title: [...prefixTitle]
@@ -117,15 +109,10 @@ export default {
 
         if (router.meta && router.meta.title) {
           data.title = [...data.title, router.meta.title]
-
           if (router.redirect !== 'noRedirect') {
-            // only push the routes with title
-            // special case: need to exclude parent router without redirect
             res.push(data)
           }
         }
-
-        // recursive child routes
         if (router.children) {
           const tempRoutes = this.generateRoutes(router.children, data.path, data.title)
           if (tempRoutes.length >= 1) {

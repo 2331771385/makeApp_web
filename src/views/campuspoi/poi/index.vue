@@ -9,8 +9,6 @@
         >
           <el-option v-for="option in campusList" :key="option.id" :value="option.id" :label="option.value" />
         </el-select>
-
-
         <!-- <el-input
           v-model="queryParams.poiuuid"
           placeholder="请输入"
@@ -69,41 +67,39 @@
           v-hasPermi="['campuspoi:poi:remove']"
         >删除</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="el-icon-download"
-          size="mini"
-          @click="handleExport"
-          v-hasPermi="['campuspoi:poi:export']"
-        >导出</el-button>
-      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="poiList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="位置点名称" align="center" prop="poiid" />
-      <el-table-column label="校区" align="center" prop="poiuuid" />
+      <el-table-column label="ID" align="center" width="55" prop="poiid" />
+      <el-table-column label="名称" min-width="150" align="center" prop="poiname" />
+      <el-table-column label="校区" min-width="120" align="center" prop="campusid">
+        <template slot-scope="scope">
+          [{{scope.row.campusid}}]{{scope.row.campusname}}
+        </template>
+      </el-table-column>
       <el-table-column label="类型" align="center" prop="poitype" />
-      <el-table-column label="简介" align="center" prop="shortdescribe" />
-      <el-table-column label="详情" align="center" prop="detaildescribe" />
-      <el-table-column label="图片" align="center" prop="picurls" />
+      <!-- <el-table-column label="简介" show-overflow-tooltip='true' align="center" prop="shortdescribe" /> -->
+      <el-table-column label="详情" show-overflow-tooltip='true' align="center" prop="detaildescribe" />
+      <el-table-column label="图片" show-overflow-tooltip='true'align="center" prop="picurls" />
       
-      <el-table-column label="存放单体化children对象" align="center" prop="data" />
-      <el-table-column label="存放pin children对象 前缀为buildPin_" align="center" prop="pindata" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" show-overflow-tooltip='true' prop="createTime" width="80">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="修改时间" align="center" prop="updateTime" width="180">
+      <el-table-column label="修改时间" align="center" show-overflow-tooltip='true' prop="updateTime" width="80">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="0 存在 1 删除" align="center" prop="state" />
+      <el-table-column label="状态" align="center" prop="state">
+        <template slot-scope="scope">
+          <font v-if="scope.row.state==0" style="color:green">正常</font>
+          <font v-else style="color:red">停用</font>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -133,58 +129,31 @@
     />
 
     <!-- 添加或修改位置信息管理对话框 -->
-    <!-- <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="" prop="poiuuid">
-          <el-input v-model="form.poiuuid" placeholder="请输入" />
+        <el-form-item label="位置点名称" prop="poiname">
+          <el-input v-model="form.poiname" placeholder="请输入名称" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="poiname">
-          <el-input v-model="form.poiname" placeholder="请输入${comment}" />
+        <el-form-item label="所在校区" prop="campusid">
+          <el-select
+            v-model="form.campusid"
+            filterable
+            class="header-search-select"
+          >
+            <el-option v-for="option in campusList" :key="option.id" :value="option.id" :label="option.value" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="是否迎新,0不是,1是" prop="isforfreshman">
-          <el-input v-model="form.isforfreshman" placeholder="请输入是否迎新,0不是,1是" />
+        <el-form-item label="经度" prop="longitude">
+          <el-input v-model="form.longitude" placeholder="请输入经度" />
         </el-form-item>
-        <el-form-item label="是否是热门景点，0不是，1是" prop="ishotspot">
-          <el-input v-model="form.ishotspot" placeholder="请输入是否是热门景点，0不是，1是" />
+        <el-form-item label="纬度" prop="latitude">
+          <el-input v-model="form.latitude" placeholder="请输入纬度" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="campusid">
-          <el-input v-model="form.campusid" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="buildingID 或 草木PlantID" prop="objectid">
-          <el-input v-model="form.objectid" placeholder="请输入buildingID 或 草木PlantID" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="longitude">
-          <el-input v-model="form.longitude" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="latitude">
-          <el-input v-model="form.latitude" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="高度" prop="height">
-          <el-input v-model="form.height" placeholder="请输入高度" />
-        </el-form-item>
-        <el-form-item label="相机坐标" prop="cameraview">
-          <el-input v-model="form.cameraview" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="封面图片url" prop="coverpicurl">
-          <el-input v-model="form.coverpicurl" placeholder="请输入封面图片url" />
-        </el-form-item>
-        <el-form-item label="轮播图图片链接，多张图片由;隔开" prop="picurls">
+        <el-form-item label="图片" prop="picurls">
           <el-input v-model="form.picurls" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="pic720url">
-          <el-input v-model="form.pic720url" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="pic720defaultlng">
-          <el-input v-model="form.pic720defaultlng" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="pic720defaultlat">
-          <el-input v-model="form.pic720defaultlat" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="videourl">
-          <el-input v-model="form.videourl" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="weburl">
-          <el-input v-model="form.weburl" placeholder="请输入${comment}" />
+        <el-form-item label="官网url" prop="weburl">
+          <el-input v-model="form.weburl" placeholder="请输入官网地址" />
         </el-form-item>
         <el-form-item label="简介" prop="shortdescribe">
           <el-input v-model="form.shortdescribe" type="textarea" placeholder="请输入内容" />
@@ -192,26 +161,18 @@
         <el-form-item label="详情" prop="detaildescribe">
           <el-input v-model="form.detaildescribe" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="存放单体化children对象" prop="data">
-          <el-input v-model="form.data" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="存放pin children对象 前缀为buildPin_" prop="pindata">
-          <el-input v-model="form.pindata" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="0 存在 1 删除" prop="state">
-          <el-input v-model="form.state" placeholder="请输入0 存在 1 删除" />
-        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
-    </el-dialog> -->
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { listPoi, getPoi, delPoi, addPoi, updatePoi } from "@/api/campuspoi/poi";
+import { listCampus } from "@/api/campus/campus";
 
 export default {
   name: "Poi",
@@ -232,16 +193,7 @@ export default {
       // 位置信息管理表格数据
       poiList: [],
       // 校区信息管理列表
-      campusList: [
-        {
-          id: 1,
-          value: '中心校区'
-        },
-        {
-          id: 2,
-          value: '洪家楼校区'
-        }
-      ],
+      campusList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -250,7 +202,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        campusid: '1',
+        campusid: '中心校区',
       },
       // 表单参数
       form: {},
@@ -260,18 +212,46 @@ export default {
     };
   },
   created() {
-    this.getList();
+    this.getCampusList()
+    
   },
   methods: {
+    getCampusList() {
+      this.loading = true;
+      listCampus({
+        pageNum: 1,
+        pageSize: 10
+      }).then(response => {
+        response.rows.forEach(item => {
+          this.campusList.push({
+            id: item.campusid,
+            value: item.campusname
+          })
+        })
+        this.getList();
+      }).catch(err => {
+        this.$message.error('获取数据失败!');
+      });
+    },
+
     /** 查询位置信息管理列表 */
     getList() {
       this.loading = true;
       listPoi(this.queryParams).then(response => {
-        console.log('成功的回调函数');
-        console.log(response);
+        response.rows.forEach(item => {
+          this.campusList.forEach(element => {
+            if (element.id == item.campusid) {
+              item.campusname = element.value;
+            }
+          })
+        })
         this.poiList = response.rows;
+        console.log(this.poiList);
         this.total = response.total;
         this.loading = false;
+      }).catch(err => {
+        this.loading = false;
+        this.$message.error('获取数据失败!');
       });
     },
     // 取消按钮
@@ -374,12 +354,6 @@ export default {
         this.$modal.msgSuccess("删除成功");
       }).catch(() => {});
     },
-    /** 导出按钮操作 */
-    handleExport() {
-      this.download('campuspoi/poi/export', {
-        ...this.queryParams
-      }, `poi_${new Date().getTime()}.xlsx`)
-    }
   }
 };
 </script>

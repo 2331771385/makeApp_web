@@ -20,16 +20,6 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['campus:campus:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
           type="success"
           plain
           icon="el-icon-edit"
@@ -50,63 +40,47 @@
           v-hasPermi="['campus:campus:remove']"
         >删除</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="el-icon-download"
-          size="mini"
-          @click="handleExport"
-          v-hasPermi="['campus:campus:export']"
-        >导出</el-button>
-      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="campusList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="校区id" align="center" prop="campusid" />
-      <el-table-column label="${comment}" align="center" prop="campusname" />
-      <el-table-column label="${comment}" align="center" prop="campusshortname" />
-      <el-table-column label="${comment}" align="center" prop="cityid" />
-      <el-table-column label="${comment}" align="center" prop="cityname" />
-      <el-table-column label="${comment}" align="center" prop="address" />
-      <el-table-column label="${comment}" align="center" prop="sortindex" />
-      <el-table-column label="图片url" align="center" prop="picurl" />
-      <el-table-column label="${comment}" align="center" prop="map3durl" />
-      <el-table-column label="详情" align="center" prop="describe" />
-      <el-table-column label="存放children对象" align="center" prop="edgebaidu" />
-      <el-table-column label="贴图左上角经度" align="center" prop="ltlongitudegaode" />
-      <el-table-column label="${comment}" align="center" prop="ltlatitudegaode" />
-      <el-table-column label="贴图右下角经度" align="center" prop="rblongitudegaode" />
-      <el-table-column label="${comment}" align="center" prop="rblatitudegaode" />
-      <el-table-column label="${comment}" align="center" prop="centerlongitudebaidu" />
-      <el-table-column label="${comment}" align="center" prop="centerlatitudebaidu" />
-      <el-table-column label="${comment}" align="center" prop="centerlongitudegaode" />
-      <el-table-column label="${comment}" align="center" prop="centerlatitudegaode" />
-      <el-table-column label="${comment}" align="center" prop="scalelevelbaidu" />
-      <el-table-column label="${comment}" align="center" prop="scalelevelgaode" />
-      <el-table-column label="相机坐标,隔开" align="center" prop="camerahead" />
-      <el-table-column label="倾斜" align="center" prop="cameratilt" />
-      <el-table-column label="创建时间" align="center" prop="createyear" />
-      <el-table-column label="修改时间" align="center" prop="updatetime" width="180">
+      <el-table-column label="ID" width="55" align="center" prop="campusid" />
+      <el-table-column label="校区名称" min-width="125" align="center" prop="campusname" />
+      <el-table-column label="校区简称" width="105" align="center" prop="campusshortname" />
+      <el-table-column label="所属城市" align="center" prop="cityid">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.updatetime, '{y}-{m}-{d}') }}</span>
+          [{{scope.row.cityid}}]{{scope.row.cityname}}
         </template>
       </el-table-column>
-      <el-table-column label="0 存在 1 删除" align="center" prop="state" />
+      <el-table-column label="图片" align="center" prop="picurl">
+        <font slot-scope="scope">
+          <el-image :src="scope=".row.picurl""></el-image>
+        </font>
+      </el-table-column>
+      <el-table-column label="校区简介" show-overflow-tooltip='true' align="center" min-width="120" prop="describe" />
+      <el-table-column label="经纬度" align="center" min-width="130" prop="centerlongitudegaode">
+        <template slot-scope="scope">
+          {{scope.row.centerlongitudegaode}},{{scope.row.centerlatitudegaode}}
+        </template>
+      </el-table-column>
+      <!-- <el-table-column label="修改时间" align="center" show-overflow-tooltip='true' prop="updateTime" width="80">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column> -->
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
             size="mini"
-            type="text"
+            type="primary"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['campus:campus:edit']"
           >修改</el-button>
           <el-button
             size="mini"
-            type="text"
+            type="danger"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['campus:campus:remove']"
@@ -126,77 +100,17 @@
     <!-- 添加或修改校园信息管理对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="${comment}" prop="campusname">
-          <el-input v-model="form.campusname" placeholder="请输入${comment}" />
+        <el-form-item label="校区名称" prop="campusname">
+          <el-input v-model="form.campusname" disabled/>
         </el-form-item>
-        <el-form-item label="${comment}" prop="campusshortname">
-          <el-input v-model="form.campusshortname" placeholder="请输入${comment}" />
+        <el-form-item label="校区简称" prop="campusshortname">
+          <el-input v-model="form.campusshortname" placeholder="请输入校区简称" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="cityid">
-          <el-input v-model="form.cityid" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="cityname">
-          <el-input v-model="form.cityname" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="address">
-          <el-input v-model="form.address" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="sortindex">
-          <el-input v-model="form.sortindex" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="图片url" prop="picurl">
+        <el-form-item label="校区图片" prop="picurl">
           <el-input v-model="form.picurl" placeholder="请输入图片url" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="map3durl">
-          <el-input v-model="form.map3durl" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="详情" prop="describe">
+        <el-form-item label="校区描述" prop="describe">
           <el-input v-model="form.describe" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="存放children对象" prop="edgebaidu">
-          <el-input v-model="form.edgebaidu" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="贴图左上角经度" prop="ltlongitudegaode">
-          <el-input v-model="form.ltlongitudegaode" placeholder="请输入贴图左上角经度" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="ltlatitudegaode">
-          <el-input v-model="form.ltlatitudegaode" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="贴图右下角经度" prop="rblongitudegaode">
-          <el-input v-model="form.rblongitudegaode" placeholder="请输入贴图右下角经度" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="rblatitudegaode">
-          <el-input v-model="form.rblatitudegaode" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="centerlongitudebaidu">
-          <el-input v-model="form.centerlongitudebaidu" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="centerlatitudebaidu">
-          <el-input v-model="form.centerlatitudebaidu" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="centerlongitudegaode">
-          <el-input v-model="form.centerlongitudegaode" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="centerlatitudegaode">
-          <el-input v-model="form.centerlatitudegaode" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="scalelevelbaidu">
-          <el-input v-model="form.scalelevelbaidu" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="scalelevelgaode">
-          <el-input v-model="form.scalelevelgaode" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="相机坐标,隔开" prop="camerahead">
-          <el-input v-model="form.camerahead" placeholder="请输入相机坐标,隔开" />
-        </el-form-item>
-        <el-form-item label="倾斜" prop="cameratilt">
-          <el-input v-model="form.cameratilt" placeholder="请输入倾斜" />
-        </el-form-item>
-        <el-form-item label="创建时间" prop="createyear">
-          <el-input v-model="form.createyear" placeholder="请输入创建时间" />
-        </el-form-item>
-        <el-form-item label="0 存在 1 删除" prop="state">
-          <el-input v-model="form.state" placeholder="请输入0 存在 1 删除" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -247,7 +161,7 @@ export default {
     };
   },
   created() {
-    this.getList();
+    this.getList(); // 获取校区列表
   },
   methods: {
     /** 查询校园信息管理列表 */
@@ -255,8 +169,14 @@ export default {
       this.loading = true;
       listCampus(this.queryParams).then(response => {
         this.campusList = response.rows;
+        this.campusList.forEach(item => {
+          console.log(item.picurl);
+        })
         this.total = response.total;
         this.loading = false;
+      }).catch(err => {
+        this.loading = false;
+        this.$message.error('获取数据失败!');
       });
     },
     // 取消按钮
@@ -268,35 +188,10 @@ export default {
     reset() {
       this.form = {
         campusid: null,
-        campusname: null,
-        campusshortname: null,
-        cityid: null,
-        cityname: null,
-        address: null,
-        sortindex: null,
-        picurl: null,
-        map3durl: null,
-        describe: null,
-        edgebaidu: null,
-        ltlongitudegaode: null,
-        ltlatitudegaode: null,
-        rblongitudegaode: null,
-        rblatitudegaode: null,
-        centerlongitudebaidu: null,
-        centerlatitudebaidu: null,
-        centerlongitudegaode: null,
-        centerlatitudegaode: null,
-        scalelevelbaidu: null,
-        scalelevelgaode: null,
-        camerahead: null,
-        cameratilt: null,
-        createyear: null,
-        updatetime: null,
-        state: null,
-        createBy: null,
-        createTime: null,
-        updateBy: null,
-        updateTime: null
+        campusname: '',
+        campusshortname: '',
+        picurl: '',
+        describe: ''
       };
       this.resetForm("form");
     },
@@ -316,12 +211,6 @@ export default {
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
-    /** 新增按钮操作 */
-    handleAdd() {
-      this.reset();
-      this.open = true;
-      this.title = "添加校园信息管理";
-    },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
@@ -329,7 +218,7 @@ export default {
       getCampus(campusid).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改校园信息管理";
+        this.title = "修改校园信息";
       });
     },
     /** 提交按钮 */
@@ -362,12 +251,6 @@ export default {
         this.$modal.msgSuccess("删除成功");
       }).catch(() => {});
     },
-    /** 导出按钮操作 */
-    handleExport() {
-      this.download('campus/campus/export', {
-        ...this.queryParams
-      }, `campus_${new Date().getTime()}.xlsx`)
-    }
   }
 };
 </script>
