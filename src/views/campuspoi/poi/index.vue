@@ -4,7 +4,6 @@
       <el-form-item label="查询条件" prop="poiuuid">
         <el-select
           v-model="queryParams.campusid"
-          :remote-method="querySearch"
           filterable
           class="header-search-select"
         >
@@ -83,30 +82,15 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <!-- <el-table v-loading="loading" :data="poiList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="poiList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="位置点" align="center" prop="poiid" />
-      <el-table-column label="" align="center" prop="poiuuid" />
-      <el-table-column label="${comment}" align="center" prop="poiname" />
-      <el-table-column label="类型id" align="center" prop="poitype" />
-      <el-table-column label="${comment}" align="center" prop="poisubtype" />
-      <el-table-column label="是否迎新,0不是,1是" align="center" prop="isforfreshman" />
-      <el-table-column label="是否是热门景点，0不是，1是" align="center" prop="ishotspot" />
-      <el-table-column label="${comment}" align="center" prop="campusid" />
-      <el-table-column label="buildingID 或 草木PlantID" align="center" prop="objectid" />
-      <el-table-column label="${comment}" align="center" prop="longitude" />
-      <el-table-column label="${comment}" align="center" prop="latitude" />
-      <el-table-column label="高度" align="center" prop="height" />
-      <el-table-column label="相机坐标" align="center" prop="cameraview" />
-      <el-table-column label="封面图片url" align="center" prop="coverpicurl" />
-      <el-table-column label="轮播图图片链接，多张图片由;隔开" align="center" prop="picurls" />
-      <el-table-column label="${comment}" align="center" prop="pic720url" />
-      <el-table-column label="${comment}" align="center" prop="pic720defaultlng" />
-      <el-table-column label="${comment}" align="center" prop="pic720defaultlat" />
-      <el-table-column label="${comment}" align="center" prop="videourl" />
-      <el-table-column label="${comment}" align="center" prop="weburl" />
+      <el-table-column label="位置点名称" align="center" prop="poiid" />
+      <el-table-column label="校区" align="center" prop="poiuuid" />
+      <el-table-column label="类型" align="center" prop="poitype" />
       <el-table-column label="简介" align="center" prop="shortdescribe" />
       <el-table-column label="详情" align="center" prop="detaildescribe" />
+      <el-table-column label="图片" align="center" prop="picurls" />
+      
       <el-table-column label="存放单体化children对象" align="center" prop="data" />
       <el-table-column label="存放pin children对象 前缀为buildPin_" align="center" prop="pindata" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
@@ -138,7 +122,7 @@
           >删除</el-button>
         </template>
       </el-table-column>
-    </el-table> -->
+    </el-table>
     
     <pagination
       v-show="total>0"
@@ -283,6 +267,8 @@ export default {
     getList() {
       this.loading = true;
       listPoi(this.queryParams).then(response => {
+        console.log('成功的回调函数');
+        console.log(response);
         this.poiList = response.rows;
         this.total = response.total;
         this.loading = false;
