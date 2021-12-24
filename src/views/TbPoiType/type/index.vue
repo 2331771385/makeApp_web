@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="查询条件" prop="createyear">
+      <el-form-item label="查询条件" prop="poitypename">
         <el-input
-          v-model="queryParams.campusname"
-          placeholder="校区名称或简称关键词"
+          v-model="queryParams.poitypename"
+          placeholder="类型名称关键词"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
@@ -20,13 +20,23 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
+          type="primary"
+          plain
+          icon="el-icon-plus"
+          size="mini"
+          @click="handleAdd"
+          v-hasPermi="['TbPoiType:type:add']"
+        >新增</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
           type="success"
           plain
           icon="el-icon-edit"
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['campus:campus:edit']"
+          v-hasPermi="['TbPoiType:type:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -37,31 +47,30 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['campus:campus:remove']"
+          v-hasPermi="['TbPoiType:type:remove']"
         >删除</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="campusList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="typeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" width="55" align="center" prop="campusid" />
-      <el-table-column label="校区名称" min-width="125" align="center" prop="campusname" />
-      <el-table-column label="校区简称" width="105" align="center" prop="campusshortname" />
-      <el-table-column label="所属城市" align="center" prop="cityid">
+      <el-table-column label="ID" align="center" prop="poitype" />
+      <el-table-column label="类型名称" align="center" prop="poitypename" />
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template slot-scope="scope">
-          [{{scope.row.cityid}}]{{scope.row.cityname}}
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="图片" align="center" prop="picurl">
-        <font slot-scope="scope">
-          <el-image style="width:32px;height:32px" :src="scope.row.picurl"></el-image>
-        </font>
-      </el-table-column>
-      <el-table-column label="校区简介" :show-overflow-tooltip="true" align="center" min-width="120" prop="describe" />
-      <el-table-column label="经纬度" align="center" min-width="130" prop="centerlongitudegaode">
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
         <template slot-scope="scope">
-          {{scope.row.centerlongitudegaode}},{{scope.row.centerlatitudegaode}}
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" align="center" prop="state">
+        <template slot-scope="scope">
+          <font v-if="scope.row.state==0" style="color:green">正常</font>
+          <font v-else style="color:red">停用</font>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -71,8 +80,15 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['campus:campus:edit']"
+            v-hasPermi="['TbPoiType:type:edit']"
           >修改</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-delete"
+            @click="handleDelete(scope.row)"
+            v-hasPermi="['TbPoiType:type:remove']"
+          >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -85,20 +101,16 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改校园信息管理对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="校区名称" prop="campusname">
-          <el-input v-model="form.campusname" disabled/>
+    <!-- 添加或修改位置点类型管理对话框 -->
+    <el-dialog :title="title" :visible.sync="open" width="400px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="类型名称:" prop="poitypename">
+          <el-input v-model="form.poitypename" placeholder="请输入类型名称" />
         </el-form-item>
-        <el-form-item label="校区简称">
-          <el-input v-model="form.campusshortname" placeholder="请输入校区简称" />
-        </el-form-item>
-        <el-form-item label="校区图片">
-          <el-input v-model="form.picurl" placeholder="请输入图片url" />
-        </el-form-item>
-        <el-form-item label="校区描述" prop="describe">
-          <el-input v-model="form.describe" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="所属父类:" prop="sortindex">
+          <el-select v-model="form.sortindex">
+            <el-option v-for="item in parentList" :key="item.id" :label="item.value" :value="item.id"></el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -110,10 +122,10 @@
 </template>
 
 <script>
-import { listCampus, getCampus, delCampus, addCampus, updateCampus } from "@/api/campus/campus";
+import { listType, getType, delType, addType, updateType } from "@/api/TbPoiType/type";
 
 export default {
-  name: "Campus",
+  name: "Type",
   data() {
     return {
       // 遮罩层
@@ -128,8 +140,30 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 校园信息管理表格数据
-      campusList: [],
+      // 位置点类型管理表格数据
+      typeList: [],
+      parentList: [
+        {
+          id: 1,
+          value: '建筑类型'
+        },
+        {
+          id: 2,
+          value: '单位类型'
+        },
+        {
+          id: 3,
+          value: '景点'
+        },
+        {
+          id: 4,
+          value: '迎新'
+        },
+        {
+          id: 5,
+          value: '服务类型'
+        }
+      ], // 父类的数组
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -138,40 +172,34 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        campusname: '',
-        campusshortname: '',
+        poitypename: null,
+        parenttype: null,
+        sortindex: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        campusname: [
-          { required: true, message: "校区名称不能为空", trigger: "blur" }
+        poitypename: [
+          { required: true, message: "类型名称不能为空", trigger: "blur" }
         ],
-        cronExpression: [
-          { required: true, message: "cron执行表达式不能为空", trigger: "blur" }
-        ]
       }
     };
   },
   created() {
-    this.getList(); // 获取校区列表
+    this.getList();
   },
   methods: {
-    /** 查询校园信息管理列表 */
+    /** 查询位置点类型管理列表 */
     getList() {
       this.loading = true;
-      listCampus(this.queryParams).then(response => {
-        this.campusList = response.rows;
-        this.campusList.forEach(item => {
-          item.picurl = '/dev-api' + item.picurl;
-        })
-        console.log(this.campusList);
+      listType(this.queryParams).then(response => {
+        this.typeList = response.rows;
         this.total = response.total;
         this.loading = false;
       }).catch(err => {
-        this.loading = false;
         this.$message.error('获取数据失败!');
+        this.loading = false;
       });
     },
     // 取消按钮
@@ -182,11 +210,11 @@ export default {
     // 表单重置
     reset() {
       this.form = {
-        campusid: null,
-        campusname: '',
-        campusshortname: '',
-        picurl: '',
-        describe: ''
+        poitype: null,
+        poitypename: null,
+        parenttype: null,
+        sortindex: null,
+        state: 0,
       };
       this.resetForm("form");
     },
@@ -202,32 +230,39 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.campusid)
+      this.ids = selection.map(item => item.poitype)
       this.single = selection.length!==1
       this.multiple = !selection.length
+    },
+    /** 新增按钮操作 */
+    handleAdd() {
+      this.reset();
+      this.open = true;
+      this.title = "添加位置点类型管理";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      const campusid = row.campusid || this.ids
-      getCampus(campusid).then(response => {
+      const poitype = row.poitype || this.ids
+      getType(poitype).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改校园信息";
+        this.title = "修改位置点类型管理";
       });
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.form.campusid != null) {
-            updateCampus(this.form).then(response => {
+          console.log(this.form);
+          if (this.form.poitype != null) {
+            updateType(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addCampus(this.form).then(response => {
+            addType(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -237,25 +272,15 @@ export default {
       });
     },
     /** 删除按钮操作 */
-    // handleDelete(row) {
-    //   const campusids = row.campusid || this.ids;
-    //   this.$modal.confirm('是否确认删除校园信息管理编号为"' + campusids + '"的数据项？').then(function() {
-    //     return delCampus(campusids);
-    //   }).then(() => {
-    //     this.getList();
-    //     this.$modal.msgSuccess("删除成功");
-    //   }).catch(() => {});
-    // },
+    handleDelete(row) {
+      const poitypes = row.poitype || this.ids;
+      this.$modal.confirm('是否确认删除位置点类型管理编号为"' + poitypes + '"的数据项？').then(function() {
+        return delType(poitypes);
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess("删除成功");
+      }).catch(() => {});
+    },
   }
 };
 </script>
-<style>
-.el-dialog__header {
-  background: black !important;
-}
-.el-dialog__title {
-  color: #fff;
-  display: block;
-  text-align: center;
-}
-</style>
