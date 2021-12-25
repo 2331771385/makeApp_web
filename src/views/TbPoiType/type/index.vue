@@ -69,8 +69,12 @@
       </el-table-column>
       <el-table-column label="状态" align="center" prop="state">
         <template slot-scope="scope">
-          <font v-if="scope.row.state==0" style="color:green">正常</font>
-          <font v-else style="color:red">停用</font>
+          <el-switch
+            v-model="scope.row.state"
+            :active-value='activeVal'
+            :inactive-value='inactiveVal'
+            @change="handleStatusChange(scope.row)"
+          ></el-switch>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -142,6 +146,8 @@ export default {
       total: 0,
       // 位置点类型管理表格数据
       typeList: [],
+      activeVal: 0,
+      inactiveVal: 2,
       parentList: [
         {
           id: 1,
@@ -190,6 +196,21 @@ export default {
     this.getList();
   },
   methods: {
+    handleStatusChange(row) {
+      console.log(row);
+      let data = {
+        poitype: row.poitype,
+        state: row.state
+      }
+      let text = row.state == "0" ? "启用" : "停用";
+      this.$modal.confirm('确认要' + text + '该位置点类型信息吗？').then(function() {
+        return updateType(data);
+      }).then(() => {
+        this.$modal.msgSuccess(text + "成功");
+      }).catch(function() {
+        row.state = row.state === "0" ? "2" : "0";
+      });
+    },
     /** 查询位置点类型管理列表 */
     getList() {
       this.loading = true;
@@ -284,3 +305,16 @@ export default {
   }
 };
 </script>
+<style>
+.el-dialog__title {
+  color: #fff;
+  display: block;
+  text-align: center;
+}
+.el-dialog__header {
+  background: #1890ff ;
+}
+.el-icon-close:before {
+  color: #fff;
+}
+</style>

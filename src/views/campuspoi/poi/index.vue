@@ -330,9 +330,13 @@ export default {
   methods: {
     //状态修改
     handleStatusChange(row) {
-      let text = row.state === "0" ? "启用" : "停用";
+      let data = {
+        poiid: row.poiid,
+        state: row.state
+      }
+      let text = row.state == "0" ? "启用" : "停用";
       this.$modal.confirm('确认要' + text + '该位置点的信息吗？').then(function() {
-        // return changeRoleStatus(row.roleId, row.status);
+        return updatePoi(data);
       }).then(() => {
         this.$modal.msgSuccess(text + "成功");
       }).catch(function() {

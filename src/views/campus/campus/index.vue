@@ -95,7 +95,15 @@
           <el-input v-model="form.campusshortname" placeholder="请输入校区简称" />
         </el-form-item>
         <el-form-item label="校区图片">
-          <el-input v-model="form.picurl" placeholder="请输入图片url" />
+          <el-upload 
+            ref="picurls" 
+            :on-success="uploadSuccess"
+            :file-list="fileList" 
+            :action="fileAction"
+            :before-upload="field101BeforeUpload">
+            <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
+          </el-upload>
+          <!-- <el-input v-model="form.picurl" placeholder="请输入图片url" /> -->
         </el-form-item>
         <el-form-item label="校区描述" prop="describe">
           <el-input v-model="form.describe" type="textarea" placeholder="请输入内容" />
@@ -141,6 +149,8 @@ export default {
         campusname: '',
         campusshortname: '',
       },
+      fileAction: '/dev-api/common/upload',
+      fileList: [],
       // 表单参数
       form: {},
       // 表单校验
@@ -158,6 +168,18 @@ export default {
     this.getList(); // 获取校区列表
   },
   methods: {
+    uploadSuccess(res) {
+      this.imgUrl = res.fileName;
+      this.form.picurl = res.fileName
+    },
+    field101BeforeUpload(file) {
+      let isRightSize = file.size / 1024 / 1024 < 2
+      if (!isRightSize) {
+        this.$message.error('文件大小超过 2MB')
+      }
+      return isRightSize
+    },
+
     /** 查询校园信息管理列表 */
     getList() {
       this.loading = true;
@@ -166,7 +188,6 @@ export default {
         this.campusList.forEach(item => {
           item.picurl = '/dev-api' + item.picurl;
         })
-        console.log(this.campusList);
         this.total = response.total;
         this.loading = false;
       }).catch(err => {
@@ -236,26 +257,19 @@ export default {
         }
       });
     },
-    /** 删除按钮操作 */
-    // handleDelete(row) {
-    //   const campusids = row.campusid || this.ids;
-    //   this.$modal.confirm('是否确认删除校园信息管理编号为"' + campusids + '"的数据项？').then(function() {
-    //     return delCampus(campusids);
-    //   }).then(() => {
-    //     this.getList();
-    //     this.$modal.msgSuccess("删除成功");
-    //   }).catch(() => {});
-    // },
   }
 };
 </script>
 <style>
-.el-dialog__header {
-  background: black !important;
-}
 .el-dialog__title {
   color: #fff;
   display: block;
   text-align: center;
+}
+.el-dialog__header {
+  background: #1890ff ;
+}
+.el-icon-close:before {
+  color: #fff;
 }
 </style>
