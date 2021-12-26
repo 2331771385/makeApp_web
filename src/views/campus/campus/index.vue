@@ -29,7 +29,7 @@
           v-hasPermi="['campus:campus:edit']"
         >修改</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <!-- <el-col :span="1.5">
         <el-button
           type="danger"
           plain
@@ -39,7 +39,7 @@
           @click="handleDelete"
           v-hasPermi="['campus:campus:remove']"
         >删除</el-button>
-      </el-col>
+      </el-col> -->
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 

@@ -371,7 +371,6 @@ export default {
     },
 
     getCampusList() {
-      this.loading = true;
       listCampus({
         pageNum: 1,
         pageSize: 10
