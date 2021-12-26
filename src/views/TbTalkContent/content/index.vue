@@ -5,19 +5,27 @@
         <el-select
           v-model="queryParams.campusId"
           filterable
+          @change='getPoiList'
           class="header-search-select"
         >
           <el-option v-for="option in campusList" :key="option.id" :value="option.id" :label="option.value" />
         </el-select>
       </el-form-item>
       <el-form-item prop="msgDes">
-        <el-input
+        <el-select
+            v-model="queryParams.parentId"
+            filterable
+            class="header-search-select"
+          >
+            <el-option v-for="option in poiList" :key="option.poiid" :value="option.poiid" :label="option.poiname" />
+          </el-select>
+        <!-- <el-input
           v-model="queryParams.msgDes"
           placeholder="位置点关键词"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
-        />
+        /> -->
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -61,9 +69,9 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table row-key="id" default-expand-all :tree-props="{children: 'children', hasChildren: 'hasChildren'}" v-loading="loading" :data="contentList" @selection-change="handleSelectionChange">
+    <el-table row-key="id" :tree-props="{children: 'children', hasChildren: 'hasChildren'}" v-loading="loading" :data="contentList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" width="55" align="center" prop="id" />
+      <el-table-column label="ID" min-width="85" align="center" prop="id" />
       <el-table-column label="位置点名称" min-width="120" align="center" prop="poiId">
         <template slot-scope="scope">
           [{{scope.row.poiId}}]{{scope.row.poiName}}
@@ -115,34 +123,57 @@
     />
 
     <!-- 添加或修改建筑论坛对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" width="400px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="${comment}" prop="campusId">
-          <el-input v-model="form.campusId" placeholder="请输入${comment}" />
+        <el-form-item label="校区" prop="campusId">
+          <el-select
+            v-model="form.campusId"
+            filterable
+            class="header-search-select"
+            @change='getPoiList'
+          >
+            <el-option v-for="option in campusList" :key="option.id" :value="option.id" :label="option.value" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="${comment}" prop="msgDes">
-          <el-input v-model="form.msgDes" placeholder="请输入${comment}" />
+
+        <el-form-item label="位置点" prop="poiId">
+          <el-select
+            v-model="form.poiId"
+            filterable
+            @change="getParentList"
+            class="header-search-select"
+          >
+            <el-option v-for="option in poiList" :key="option.poiid" :value="option.poiid" :label="option.poiname" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="${comment}" prop="msgImg">
-          <el-input v-model="form.msgImg" placeholder="请输入${comment}" />
+
+        <el-form-item label="评论内容" prop="msgDes">
+          <el-input v-model="form.msgDes" placeholder="请输入评论内容" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="msgName">
-          <el-input v-model="form.msgName" placeholder="请输入${comment}" />
+        <el-form-item label="微信头像" prop="msgImg">
+          <el-upload 
+            ref="picurls" 
+            :on-success="uploadSuccess"
+            :file-list="fileList" 
+            :action="fileAction"
+            :before-upload="field101BeforeUpload">
+            <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
+          </el-upload>
+          <!-- <el-input v-model="form.msgImg" placeholder="请输入${comment}" /> -->
         </el-form-item>
-        <el-form-item label="${comment}" prop="msgTimer">
-          <el-date-picker clearable size="small"
-            v-model="form.msgTimer"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="选择${comment}">
-          </el-date-picker>
+        <el-form-item label="昵称" prop="msgName">
+          <el-input v-model="form.msgName" placeholder="请输入微信昵称" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="parentId">
-          <el-input v-model="form.parentId" placeholder="请输入${comment}" />
+        <el-form-item label="所属父类">
+          <el-select
+            v-model="form.parentId"
+            filterable
+            class="header-search-select"
+          >
+            <el-option v-for="option in parentList" :key="option.id" :value="option.id" :label="'['+option.id+']'+option.poiName" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="${comment}" prop="poiId">
-          <el-input v-model="form.poiId" placeholder="请输入${comment}" />
-        </el-form-item>
+        
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -155,13 +186,17 @@
 <script>
 import { listContent, getContent, delContent, addContent, updateContent } from "@/api/TbTalkContent/content";
 import { listCampus } from "@/api/campus/campus";
+import { listPoi } from "@/api/campuspoi/poi";
 
 export default {
   name: "Content",
   data() {
     return {
+      fileAction: '/dev-api/common/upload',
+      fileList: [],
       // 遮罩层
       loading: true,
+      parentList: [],
       // 选中数组
       ids: [],
       // 非单个禁用
@@ -187,7 +222,7 @@ export default {
         msgImg: null,
         msgName: null,
         msgTimer: null,
-        parentId: null,
+        parentId: 312,
         poiId: null,
       },
       // 表单参数
@@ -195,13 +230,42 @@ export default {
       campusList: [], // 获取校区数据
       // 表单校验
       rules: {
-      }
+        poiId: [
+          { required: true, message: "位置点名称不能为空", trigger: "blur" }
+        ],
+        campusId: [
+          { required: true, message: "校区名称不能为空", trigger: "blur" }
+        ],
+      },
+      poiList: []
     };
   },
   created() {
     this.getCampusList();
+    this.getPoiList(); // 获取所有的位置点
   },
   methods: {
+     uploadSuccess(res) {
+      this.imgUrl = res.fileName;
+      this.form.msgImg = res.url;
+    },
+    field101BeforeUpload(file) {
+      let isRightSize = file.size / 1024 / 1024 < 2
+      if (!isRightSize) {
+        this.$message.error('文件大小超过 2MB')
+      }
+      return isRightSize
+    },
+    // 获取所有的位置点信息
+    getPoiList() {
+      listPoi({
+        campusid: this.form.campusId || this.queryParams.campusId
+      }).then(response => {
+        this.poiList = response.rows;
+      }).catch(err => {
+        this.$message.error('获取数据失败!');
+      });
+    },
     getCampusList() {
       listCampus({
         pageNum: 1,
@@ -211,40 +275,44 @@ export default {
           this.campusList.push({
             id: item.campusid,
             value: item.campusname
-          })
+          });
         })
         this.getList();
       }).catch(err => {
         this.$message.error('获取数据失败!');
       });
     },
+
+    // 得到选中位置点的所有父类
+    getParentList() {
+      listContent({
+        campusId: this.form.campusId,
+        parentId: this.form.poiId,
+      }).then(res => {
+        this.parentList = res.rows;
+      })
+    },
     /** 查询建筑论坛列表 */
     getList() {
       this.loading = true;
+      this.contentList = [];
       listContent(this.queryParams).then(response => {
         this.contentList = response.rows;
-        // let data = response.rows;
-        // for(let i = 0; i < data.length; i++) {
-        //   for(let j = 0; j < data.length; j++) {
-        //     if (data[j].parentId == data[i].id) {
-        //       if (!Array.isArray(data[i].children)) {
-        //         data[i].children = [];
-        //       }
-        //       data[i].children.push(data[j]);
-        //     }
-        //   }
-        // }
-        // console.log(data);
-        // this.contentList = data;
         for(let i = 0; i < this.contentList.length; i++) {
           for(let j = 0; j < this.campusList.length; j++) {
             if (this.campusList[j].id == this.contentList[i].campusId) {
               this.contentList[i].campusname = this.campusList[j].value;
+              if (this.contentList[i].children) {
+                this.contentList[i].children.forEach(item => {
+                  item.campusname = this.campusList[j].value;
+                  item.poiName = this.contentList[i].poiName
+                })
+              }
               break;
             }
           }
         }
-        this.total = response.total;
+        this.total = this.contentList.length;
         this.loading = false;
       }).catch(err => {
         this.$message.error('获取数据失败！')
@@ -293,7 +361,7 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加建筑论坛";
+      this.title = "添加留言信息";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -302,13 +370,15 @@ export default {
       getContent(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改建筑论坛";
+        this.title = "修改留言信息";
       });
+      this.getParentList();
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          this.form.parentId = this.form.parentId || this.form.poiId
           if (this.form.id != null) {
             updateContent(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
@@ -328,7 +398,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除建筑论坛编号为"' + ids + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除论坛编号为"' + ids + '"的数据项？').then(function() {
         return delContent(ids);
       }).then(() => {
         this.getList();

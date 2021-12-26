@@ -65,7 +65,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" width="55" align="center" prop="sourceid" />
       <!-- <el-table-column label="资源类型" align="center" prop="typeid" /> -->
-      <el-table-column label="资源名称" min-width="120" align="center" prop="sourcename" />
+      <el-table-column label="资源名称" min-width="140" align="center" prop="sourcename" />
       <el-table-column label="校区" align="center" prop="campusid">
         <template slot-scope="scope">
           [{{scope.row.campusid}}]{{scope.row.campusname}}
@@ -97,8 +97,8 @@
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="水平高度" align="center" prop="x" />
-      <el-table-column label="垂直高度" align="center" prop="y" />
+      <el-table-column label="水平高度" width="80" align="center" prop="x" />
+      <el-table-column label="垂直高度" align="center" width="80" prop="y" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -128,58 +128,39 @@
     />
 
     <!-- 添加或修改全景图对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" width="380px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="资源类型" prop="typeid">
-          <el-input v-model="form.typeid" placeholder="请输入资源类型" />
+        <el-form-item label="校区" prop="campusid">
+          <el-select
+            v-model="form.campusid"
+            filterable
+            class="header-search-select"
+          >
+            <el-option v-for="option in campusList" :key="option.id" :value="option.id" :label="option.value" />
+          </el-select>
+          <!-- <el-input v-model="form.campusid" placeholder="请输入校区" /> -->
         </el-form-item>
         <el-form-item label="资源名称" prop="sourcename">
           <el-input v-model="form.sourcename" placeholder="请输入资源名称" />
         </el-form-item>
-        <el-form-item label="简介" prop="brief">
-          <el-input v-model="form.brief" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="校区" prop="campusid">
-          <el-input v-model="form.campusid" placeholder="请输入校区" />
-        </el-form-item>
-        <el-form-item label="院系" prop="departmentid">
-          <el-input v-model="form.departmentid" placeholder="请输入院系" />
-        </el-form-item>
-        <el-form-item label="建筑" prop="buildid">
-          <el-input v-model="form.buildid" placeholder="请输入建筑" />
-        </el-form-item>
-        <el-form-item label="楼层" prop="floor">
-          <el-input v-model="form.floor" placeholder="请输入楼层" />
-        </el-form-item>
-        <el-form-item label="所属服务id" prop="serviceid">
-          <el-input v-model="form.serviceid" placeholder="请输入所属服务id" />
-        </el-form-item>
-        <el-form-item label="上传者" prop="userid">
-          <el-input v-model="form.userid" placeholder="请输入上传者" />
-        </el-form-item>
+        
         <el-form-item label="存储路径" prop="sourceurl">
-          <el-input v-model="form.sourceurl" placeholder="请输入存储路径" />
+          <el-upload 
+            ref="picurls" 
+            :on-success="uploadSuccess"
+            :file-list="fileList" 
+            :action="fileAction"
+            :before-upload="field101BeforeUpload">
+            <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
+          </el-upload>
+          <!-- <el-input v-model="form.sourceurl" placeholder="请输入存储路径" /> -->
         </el-form-item>
-        <el-form-item label="缩略图路径" prop="thumburl">
-          <el-input v-model="form.thumburl" placeholder="请输入缩略图路径" />
+      
+        <el-form-item label="水平高度" prop="x">
+          <el-input type="number" step="0.1" v-model="form.x" />
         </el-form-item>
-        <el-form-item label="全景图初始视角维度" prop="latitude">
-          <el-input v-model="form.latitude" placeholder="请输入全景图初始视角维度" />
-        </el-form-item>
-        <el-form-item label="全景图初始视角经度" prop="longitude">
-          <el-input v-model="form.longitude" placeholder="请输入全景图初始视角经度" />
-        </el-form-item>
-        <el-form-item label="资源大小" prop="sourcesize">
-          <el-input v-model="form.sourcesize" placeholder="请输入资源大小" />
-        </el-form-item>
-        <el-form-item label="初始为0，1表示删除" prop="state">
-          <el-input v-model="form.state" placeholder="请输入初始为0，1表示删除" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="x">
-          <el-input v-model="form.x" placeholder="请输入${comment}" />
-        </el-form-item>
-        <el-form-item label="${comment}" prop="y">
-          <el-input v-model="form.y" placeholder="请输入${comment}" />
+        <el-form-item label="垂直高度" prop="y">
+          <el-input v-model="form.y" step="0.1" type="number" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -200,6 +181,8 @@ export default {
     return {
       activeVal: 0,
       inactiveVal: 2,
+      fileAction: '/dev-api/common/upload',
+      fileList: [],
       // 遮罩层
       loading: true,
       // 选中数组
@@ -247,6 +230,12 @@ export default {
       form: {},
       // 表单校验
       rules: {
+        campusid: [
+          { required: true, message: "校区名称不能为空", trigger: "blur" }
+        ],
+        sourcename: [
+          { required: true, message: "校区名称不能为空", trigger: "blur" }
+        ]
       }
     };
   },
@@ -254,15 +243,28 @@ export default {
     this.getCampusList(); // 查询所有的校区
   },
   methods: {
+    uploadSuccess(res) {
+      this.imgUrl = res.fileName;
+      console.log(res);
+      this.form.sourceurl = res.url;
+    },
+    field101BeforeUpload(file) {
+      let isRightSize = file.size / 1024 / 1024 < 2
+      if (!isRightSize) {
+        this.$message.error('文件大小超过 2MB')
+      }
+      return isRightSize
+    },
     //状态修改
     handleStatusChange(row) {
+      console.log(row);
       let data = {
-        poiid: row.poiid,
+        sourceid: row.sourceid,
         state: row.state
       }
       let text = row.state == "0" ? "启用" : "停用";
       this.$modal.confirm('确认要' + text + '该位置点的信息吗？').then(function() {
-        // return updatePoi(data);
+        return updatePanoSource(data);
       }).then(() => {
         this.$modal.msgSuccess(text + "成功");
       }).catch(function() {
@@ -335,8 +337,8 @@ export default {
         state: null,
         createTime: null,
         updateTime: null,
-        x: null,
-        y: null,
+        x: 0,
+        y: 0,
         createBy: null,
         updateBy: null
       };
