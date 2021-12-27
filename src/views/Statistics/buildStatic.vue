@@ -2,6 +2,20 @@
     <div class="app-container">
         <el-form :model="queryParams" ref="queryForm" :inline="true" label-width="68px">
             <el-form-item label="查询条件">
+                <el-select
+                    v-model="queryParams.campusId"
+                    filterable
+                >
+                    <el-option 
+                        v-for="item in campusList" 
+                        :key="item.id"
+                        :value="item.id"
+                        :label="item.value"
+                    >
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item>
                 <el-date-picker
                     v-model="queryParams.date"
                     type="daterange"
@@ -25,13 +39,14 @@
 <script>
 import * as G2 from '@antv/g2'; 
 import { currentTime } from './config'
+import { listCampus } from "@/api/campus/campus";
+
 export default {
-    name: 'webStatic',
     data() {
         return {
-            // 查询参数
-            queryParams: {
-                date: currentTime()
+             queryParams: {
+                date: currentTime(),
+                campusId: 1
             },
             chartId: 'chart' + +new Date() + ((Math.random() * 1000).toFixed(0) + ''),
             chartData: [
@@ -72,14 +87,31 @@ export default {
                     value: 33233
                 }
             ],
-
+            campusList: []
         }
+    },
+    created() {
+        this.getCampusList();
     },
     mounted() {
         this.createChart(this.chartId, this.chartData);
     },
     methods: {
-        // 创建echarts对象
+        getCampusList() {
+            listCampus({
+                pageNum: 1,
+                pageSize: 10
+            }).then(response => {
+                response.rows.forEach(item => {
+                    this.campusList.push({
+                        id: item.campusid,
+                        value: item.campusname
+                    })
+                });
+            }).catch(err => {
+                this.$message.error('获取数据失败!');
+            });
+        },
         createChart(container, data) {
             let chart = new G2.Chart({
                 container: container,
