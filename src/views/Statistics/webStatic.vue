@@ -24,7 +24,9 @@
 </template>
 <script>
 import * as G2 from '@antv/g2'; 
-import { currentTime } from './config'
+import { currentTime } from './config';
+import { listTbVisiLogAll } from '@/api/statistic/TbVisiLog'
+
 export default {
     name: 'webStatic',
     data() {
@@ -72,13 +74,30 @@ export default {
                     value: 33233
                 }
             ],
-
+            dataList: [], // 获取数据
         }
+    },
+    created() {
+        this.getData();
     },
     mounted() {
         this.createChart(this.chartId, this.chartData);
     },
     methods: {
+        getData() {
+            let Time = this.queryParams.date;
+            listTbVisiLogAll({
+//                 endTime:"2021-12-28",
+//                 startTime:"2021-12-21"
+                // startTime: this.queryParams.date[0],
+                // endTime: this.queryParams.date[1]
+            }).then(res => {
+                console.log('成功');
+                console.log(res);
+            }).catch(err => {
+                this.$message.error('获取数据失败！')
+            })
+        },
         // 创建echarts对象
         createChart(container, data) {
             let chart = new G2.Chart({
