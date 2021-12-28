@@ -12,8 +12,8 @@ export function listTbVisiLog(query) {
 export function listTbVisiLogAll(query) {
   return request({
     url: '/TbVisiLog/visi',
-    method: 'get',
-    params: query
+    method: 'post',
+    data: query
   })
 }
 

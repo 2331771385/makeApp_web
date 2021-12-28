@@ -87,11 +87,10 @@ export default {
         getData() {
             let Time = this.queryParams.date;
             listTbVisiLogAll({
-//                 endTime:"2021-12-28",
-//                 startTime:"2021-12-21"
-                // startTime: this.queryParams.date[0],
-                // endTime: this.queryParams.date[1]
-            }).then(res => {
+                 endTime:"2021-12-28",
+                startTime:"2021-12-21"
+                
+                }).then(res => {
                 console.log('成功');
                 console.log(res);
             }).catch(err => {
