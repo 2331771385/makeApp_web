@@ -25,6 +25,7 @@
 <script>
 import * as G2 from '@antv/g2'; 
 import { currentTime } from './config'
+import { listTbVisiLogAll } from '@/api/statistic/TbVisiLog'
 
 export default {
     data() {
@@ -65,10 +66,36 @@ export default {
             },
         }
     },
+    created() {
+        this.getCampusData();
+    },
     mounted() {
         this.createChart(this.chartId, this.chartData);
     },
     methods: {
+        getCampusData() {
+            listTbVisiLogAll({
+                startTime: this.queryParams.date[0],
+                endTime: this.queryParams.date[1]
+            }).then(res => {
+                this.chartData = res.data;
+                this.chartData.forEach(item => {
+                    item.week = this.transLateTime(item.week)
+                })
+                console.log(this.chartData);
+                this.createChart(this.chartId, this.chartData);
+            }).catch(err => {
+                this.$message.error('获取数据失败！')
+            })
+        },
+        transLateTime(timestamp) {
+            const date=new Date(timestamp)
+            const Y = date.getFullYear() + '-';
+            const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+            const D = (date.getDate() < 10 ? '0' + date.getDate() : date.getDate());
+            const dateString = Y + M + D;
+            return dateString;
+        },
         createChart(container, data) {
             let chart = new G2.Chart({
                 container: container,

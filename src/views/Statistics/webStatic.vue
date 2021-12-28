@@ -36,69 +36,38 @@ export default {
                 date: currentTime()
             },
             chartId: 'chart' + +new Date() + ((Math.random() * 1000).toFixed(0) + ''),
-            chartData: [
-                {
-                    year: '1991',
-                    value: 15468
-                }, 
-                {
-                    year: '1992',
-                    value: 16100
-                }, 
-                {
-                    year: '1993',
-                    value: 15900
-                }, 
-                {
-                    year: '1994',
-                    value: 17409
-                }, 
-                {
-                    year: '1995',
-                    value: 17000
-                },
-                {
-                    year: '1996',
-                    value: 21056
-                }, 
-                {
-                    year: '1997',
-                    value: 26982
-                }, 
-                {
-                    year: '1998',
-                    value: 32040
-                }, 
-                {
-                    year: '1999',
-                    value: 33233
-                }
-            ],
-            dataList: [], // 获取数据
+            chartData: [],
         }
     },
     created() {
         this.getData();
     },
-    mounted() {
-        this.createChart(this.chartId, this.chartData);
-    },
     methods: {
         getData() {
-            let Time = this.queryParams.date;
             listTbVisiLogAll({
-                 endTime:"2021-12-28",
-                startTime:"2021-12-21"
-                
-                }).then(res => {
-                console.log('成功');
-                console.log(res);
+                startTime: this.queryParams.date[0],
+                endTime: this.queryParams.date[1]
+            }).then(res => {
+                this.chartData = res.data;
+                this.chartData.forEach(item => {
+                    item.week = this.transLateTime(item.week)
+                })
+                this.createChart(this.chartId, this.chartData);
             }).catch(err => {
                 this.$message.error('获取数据失败！')
             })
         },
+        transLateTime(timestamp) {
+            const date=new Date(timestamp)
+            const Y = date.getFullYear() + '-';
+            const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+            const D = (date.getDate() < 10 ? '0' + date.getDate() : date.getDate());
+            const dateString = Y + M + D;
+            return dateString;
+        },
         // 创建echarts对象
         createChart(container, data) {
+            console.log(data);
             let chart = new G2.Chart({
                 container: container,
                 forceFit: true,
@@ -112,7 +81,7 @@ export default {
             chart.source(data);
             chart.scale({
                 value: {
-                    min: 10000,
+                    min: 1,
                     alias: "数量"
                 },
                 year: {
@@ -122,7 +91,7 @@ export default {
             chart.axis('value', {
                 label: {
                     formatter(val) {
-                    return (val / 10000).toFixed(1) + 'k';
+                    return (val) + '次';
                     }
                 }
             });
@@ -131,8 +100,8 @@ export default {
                     type: 'cross'
                 }
             });
-            chart.area().position('year*value');
-            chart.line().position('year*value');
+            chart.area().position('week*value');
+            chart.line().position('week*value');
             chart.render();
         },
         // 查询
