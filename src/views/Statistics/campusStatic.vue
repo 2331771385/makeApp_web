@@ -37,9 +37,9 @@ export default {
                 { campusName: 'Asia', week: '1850', value: 809, id: 1 },
                 { campusName: 'Asia', week: '1900', value: 5268 , id: 1},
                 { campusName: 'Asia', week: '1950', value: 4400, id: 1 },
-                { campusName: 'Asia', week: '1999', value: 3634, id: 1 },
-                { campusName: 'Asia', week: '2050', value: 947, id: 1 },
-                { campusName: 'Africa', week: '1750', value: 106, id: 1 },
+                // { campusName: 'Asia', week: '1999', value: 3634, id: 1 },
+                // { campusName: 'Asia', week: '2050', value: 947, id: 1 },
+                // { campusName: 'Africa', week: '1750', value: 106, id: 1 },
                 { campusName: 'Africa', week: '1800', value: 107, id: 1 },
                 { campusName: 'Africa', week: '1850', value: 111, id: 1 },
                 { campusName: 'Africa', week: '1900', value: 1766 , id: 1},
@@ -49,8 +49,8 @@ export default {
                 { campusName: 'Europe', week: '1750', value: 163, id: 1 },
                 { campusName: 'Europe', week: '1800', value: 203, id: 1 },
                 { campusName: 'Europe', week: '1850', value: 276, id: 1 },
-                { campusName: 'Europe', week: '1900', value: 628 , id: 1},
-                { campusName: 'Europe', week: '1950', value: 547, id: 1 },
+                // { campusName: 'Europe', week: '1900', value: 628 , id: 1},
+                // { campusName: 'Europe', week: '1950', value: 547, id: 1 },
                 { campusName: 'Europe', week: '1999', value: 729, id: 1 },
                 { campusName: 'Europe', week: '2050', value: 408, id: 1 },
                 { campusName: 'Oceania', week: '1750', value: 200, id: 1 },
@@ -104,43 +104,23 @@ export default {
         this.getCampusData();
     },
     mounted() {
-        this.createChart(this.chartId, this.chartData);
+        // this.createChart(this.chartId, this.chartData);
     },
     methods: {
-        getCampusData() {
-            listTbVisiLogAll({
+        async getCampusData() {
+            let data = {
                 startTime: this.queryParams.date[0],
                 endTime: this.queryParams.date[1],
                 visiType: 2
-            }).then(res => {
-                this.chartData = res.data;
-                this.chartData.forEach(item => {
-                    item.week = this.transLateTime(item.week)
-                })
-                for(let i=0; i<this.chartData.length;i++){
-                    for(let j=0;j<this.campusList.length;j++){
-                        if (this.campusList[j].id == this.chartData[i].campusId) {
-                            this.chartData[i].campusName = this.campusList[j].value;
-                            break;
-                        }
-                    }
-                }
-                // this.createChart(this.chartId, this.chartData);
-            }).catch(err => {
-                this.$message.error('获取数据失败！')
-            })
+            }
+            let listTbVisi = await listTbVisiLogAll(data);
+            this.chartData = listTbVisi.data
+            this.createChart(this.chartId, this.chartData);
         },
-        transLateTime(timestamp) {
-            const date=new Date(timestamp)
-            const Y = date.getFullYear() + '-';
-            const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
-            const D = (date.getDate() < 10 ? '0' + date.getDate() : date.getDate());
-            const dateString = Y + M + D;
-            return dateString;
-        },
+        
         createChart(container, data) {
             data.forEach(item => {
-                console.log(item.week);
+                console.log(item.campusName,item.value);
             })
             let chart = new G2.Chart({
                 container: container,
@@ -152,10 +132,6 @@ export default {
                 }
             });
             chart.source(data);
-            chart.scale('week', {
-                type: 'linear',
-                tickInterval: 50,
-            });
             chart.scale('value', {
                 nice: true,
             });
