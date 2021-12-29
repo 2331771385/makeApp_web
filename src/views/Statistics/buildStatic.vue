@@ -65,40 +65,24 @@ export default {
             chartId: 'chart' + +new Date() + ((Math.random() * 1000).toFixed(0) + ''),
             chartData: [
                 {
-                    year: '1991',
-                    value: 15468
+                    week: '2021-12-23',
+                    value: 15
                 }, 
                 {
-                    year: '1992',
-                    value: 16100
+                    week: '2021-12-24',
+                    value: 16
                 }, 
                 {
-                    year: '1993',
-                    value: 15900
+                    week: '2021-12-25',
+                    value: 15
                 }, 
                 {
-                    year: '1994',
-                    value: 17409
+                    week: '2021-12-26',
+                    value: 17
                 }, 
                 {
-                    year: '1995',
-                    value: 17000
-                },
-                {
-                    year: '1996',
-                    value: 21056
-                }, 
-                {
-                    year: '1997',
-                    value: 26982
-                }, 
-                {
-                    year: '1998',
-                    value: 32040
-                }, 
-                {
-                    year: '1999',
-                    value: 33233
+                    week: '2021-12-27',
+                    value: 1
                 }
             ],
             campusList: []
@@ -132,8 +116,8 @@ export default {
             let data = {
                 startTime: this.queryParams.date[0],
                 endTime: this.queryParams.date[1],
-                visiType: 2,
-                campusId: this.queryParams.campusId
+                visiType: this.queryParams.typeId,
+                campusId: this.queryParams.campusId,
             }
             let listTbVisi = await listTbVisiLogAll(data);
             this.chartData = listTbVisi.data
@@ -143,9 +127,8 @@ export default {
         createChart(container, data) {
             let chart = new G2.Chart({
                 container: container,
-                forceFit: true,
                 height: 500,
-                width: 1000,
+                autoFit: true,
                 padding: [50],
                 background: {
                     fill: "#fff"
@@ -157,14 +140,14 @@ export default {
                     min: 10000,
                     alias: "数量"
                 },
-                year: {
+                week: {
                     range: [0, 1]
                 }
             });
             chart.axis('value', {
                 label: {
                     formatter(val) {
-                    return (val / 10000).toFixed(1) + 'k';
+                    return (val) + '次';
                     }
                 }
             });
@@ -173,13 +156,13 @@ export default {
                     type: 'cross'
                 }
             });
-            chart.area().position('year*value');
-            chart.line().position('year*value');
+            chart.area().position('week*value');
+            chart.line().position('week*value');
             chart.render();
         },
         // 查询
         handleQuery() {
-
+            this.getBuildData();
         },
         // 重置
         resetQuery() {

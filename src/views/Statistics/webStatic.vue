@@ -59,28 +59,46 @@ export default {
         },
         // 创建echarts对象
         createChart(container, data) {
+            data.forEach(item => {
+                console.log(item.week);
+            })
             let chart = new G2.Chart({
                 container: container,
-                forceFit: true,
                 autoFit: true,
                 height: 500,
-                // width: 1000,
                 padding: [50],
                 background: {
                     fill: "#fff"
                 }
             });
-            chart.source(data);
-            chart.scale('value', {
-                nice: true,
+            chart.data(data);
+            chart.scale({
+                value: {
+                    min: 0,
+                    nice: true,
+                },
+                week: {
+                    range: [0, 1]
+                }
             });
-
             chart.tooltip({
-                showMarkers: false
+                showCrosshairs: true,
+                shared: true,
             });
-            chart.interaction('active-region');
 
-            chart.interval().position('week*value');
+            chart.axis('value', {
+                label: {
+                    formatter: (val) => {
+                        return (val) + '次';
+                    },
+                },
+            });
+
+            chart.area().position('week*value');
+            chart.line().position('week*value');
+
+            chart.render();
+
 
 
             // chart.source(data);
@@ -103,7 +121,7 @@ export default {
             // });
             // chart.area().position('week*value');
             // chart.line().position('week*value');
-            chart.render();
+            // chart.render();
         },
         // 查询
         handleQuery() {
