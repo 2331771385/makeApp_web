@@ -32,38 +32,72 @@ export default {
         return {
             chartId: 'chart' + +new Date() + ((Math.random() * 1000).toFixed(0) + ''),
             chartData: [
-                { country: 'Asia', year: '1750', value: 502 },
-                { country: 'Asia', year: '1800', value: 635 },
-                { country: 'Asia', year: '1850', value: 809 },
-                { country: 'Asia', year: '1900', value: 5268 },
-                { country: 'Asia', year: '1950', value: 4400 },
-                { country: 'Asia', year: '1999', value: 3634 },
-                { country: 'Asia', year: '2050', value: 947 },
-                { country: 'Africa', year: '1750', value: 106 },
-                { country: 'Africa', year: '1800', value: 107 },
-                { country: 'Africa', year: '1850', value: 111 },
-                { country: 'Africa', year: '1900', value: 1766 },
-                { country: 'Africa', year: '1950', value: 221 },
-                { country: 'Africa', year: '1999', value: 767 },
-                { country: 'Africa', year: '2050', value: 133 },
-                { country: 'Europe', year: '1750', value: 163 },
-                { country: 'Europe', year: '1800', value: 203 },
-                { country: 'Europe', year: '1850', value: 276 },
-                { country: 'Europe', year: '1900', value: 628 },
-                { country: 'Europe', year: '1950', value: 547 },
-                { country: 'Europe', year: '1999', value: 729 },
-                { country: 'Europe', year: '2050', value: 408 },
-                { country: 'Oceania', year: '1750', value: 200 },
-                { country: 'Oceania', year: '1800', value: 200 },
-                { country: 'Oceania', year: '1850', value: 200 },
-                { country: 'Oceania', year: '1900', value: 460 },
-                { country: 'Oceania', year: '1950', value: 230 },
-                { country: 'Oceania', year: '1999', value: 300 },
-                { country: 'Oceania', year: '2050', value: 300 },
+                { campusName: 'Asia', week: '1750', value: 502, id: 1 },
+                { campusName: 'Asia', week: '1800', value: 635 , id: 1},
+                { campusName: 'Asia', week: '1850', value: 809, id: 1 },
+                { campusName: 'Asia', week: '1900', value: 5268 , id: 1},
+                { campusName: 'Asia', week: '1950', value: 4400, id: 1 },
+                { campusName: 'Asia', week: '1999', value: 3634, id: 1 },
+                { campusName: 'Asia', week: '2050', value: 947, id: 1 },
+                { campusName: 'Africa', week: '1750', value: 106, id: 1 },
+                { campusName: 'Africa', week: '1800', value: 107, id: 1 },
+                { campusName: 'Africa', week: '1850', value: 111, id: 1 },
+                { campusName: 'Africa', week: '1900', value: 1766 , id: 1},
+                { campusName: 'Africa', week: '1950', value: 221, id: 1 },
+                { campusName: 'Africa', week: '1999', value: 767, id: 1 },
+                { campusName: 'Africa', week: '2050', value: 133, id: 1 },
+                { campusName: 'Europe', week: '1750', value: 163, id: 1 },
+                { campusName: 'Europe', week: '1800', value: 203, id: 1 },
+                { campusName: 'Europe', week: '1850', value: 276, id: 1 },
+                { campusName: 'Europe', week: '1900', value: 628 , id: 1},
+                { campusName: 'Europe', week: '1950', value: 547, id: 1 },
+                { campusName: 'Europe', week: '1999', value: 729, id: 1 },
+                { campusName: 'Europe', week: '2050', value: 408, id: 1 },
+                { campusName: 'Oceania', week: '1750', value: 200, id: 1 },
+                { campusName: 'Oceania', week: '1800', value: 200, id: 1 },
+                { campusName: 'Oceania', week: '1850', value: 200, id: 1 },
+                { campusName: 'Oceania', week: '1900', value: 460, id: 1 },
+                { campusName: 'Oceania', week: '1950', value: 230, id: 1 },
+                { campusName: 'Oceania', week: '1999', value: 300, id: 1 },
+                { campusName: 'Oceania', week: '2050', value: 300, id: 1 },
             ],
             queryParams: {
                 date: currentTime()
             },
+            campusList: [
+                {
+                    id: 1,
+                    value: '中心校区'
+                },
+                {
+                    id: 2,
+                    value: '洪家楼校区'
+                },
+                {
+                    id: 3,
+                    value: '千佛山校区'
+                },
+                {
+                    id: 4,
+                    value: '趵突泉校区'
+                },
+                {
+                    id: 5,
+                    value: '兴隆山校区'
+                },
+                {
+                    id: 6,
+                    value: '软件园校区'
+                },
+                {
+                    id: 7,
+                    value: '威海校区'
+                },
+                {
+                    id: 8,
+                    value: '青岛校区'
+                }
+            ]
         }
     },
     created() {
@@ -76,14 +110,22 @@ export default {
         getCampusData() {
             listTbVisiLogAll({
                 startTime: this.queryParams.date[0],
-                endTime: this.queryParams.date[1]
+                endTime: this.queryParams.date[1],
+                visiType: 2
             }).then(res => {
                 this.chartData = res.data;
                 this.chartData.forEach(item => {
                     item.week = this.transLateTime(item.week)
                 })
-                console.log(this.chartData);
-                this.createChart(this.chartId, this.chartData);
+                for(let i=0; i<this.chartData.length;i++){
+                    for(let j=0;j<this.campusList.length;j++){
+                        if (this.campusList[j].id == this.chartData[i].campusId) {
+                            this.chartData[i].campusName = this.campusList[j].value;
+                            break;
+                        }
+                    }
+                }
+                // this.createChart(this.chartId, this.chartData);
             }).catch(err => {
                 this.$message.error('获取数据失败！')
             })
@@ -97,6 +139,9 @@ export default {
             return dateString;
         },
         createChart(container, data) {
+            data.forEach(item => {
+                console.log(item.week);
+            })
             let chart = new G2.Chart({
                 container: container,
                 forceFit: true,
@@ -107,7 +152,7 @@ export default {
                 }
             });
             chart.source(data);
-            chart.scale('year', {
+            chart.scale('week', {
                 type: 'linear',
                 tickInterval: 50,
             });
@@ -123,13 +168,13 @@ export default {
             chart
             .area()
             .adjust('stack')
-            .position('year*value')
-            .color('country');
+            .position('week*value')
+            .color('campusName');
             chart
             .line()
             .adjust('stack')
-            .position('year*value')
-            .color('country');
+            .position('week*value')
+            .color('campusName');
 
             chart.interaction('element-highlight');
             chart.render()
