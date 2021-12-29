@@ -13,6 +13,7 @@
                 >
                 </el-date-picker>
             </el-form-item>
+            
             <el-form-item>
                 <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
                 <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -33,10 +34,11 @@ export default {
         return {
             // 查询参数
             queryParams: {
-                date: currentTime()
+                date: currentTime(),
+                typeId: 3
             },
             chartId: 'chart' + +new Date() + ((Math.random() * 1000).toFixed(0) + ''),
-            chartData: [],
+            chartData: []
         }
     },
     created() {
@@ -46,62 +48,61 @@ export default {
         getData() {
             listTbVisiLogAll({
                 startTime: this.queryParams.date[0],
-                endTime: this.queryParams.date[1]
+                endTime: this.queryParams.date[1],
+                visiType: 1
             }).then(res => {
                 this.chartData = res.data;
-                this.chartData.forEach(item => {
-                    item.week = this.transLateTime(item.week)
-                })
                 this.createChart(this.chartId, this.chartData);
             }).catch(err => {
                 this.$message.error('获取数据失败！')
             })
         },
-        transLateTime(timestamp) {
-            const date=new Date(timestamp)
-            const Y = date.getFullYear() + '-';
-            const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
-            const D = (date.getDate() < 10 ? '0' + date.getDate() : date.getDate());
-            const dateString = Y + M + D;
-            return dateString;
-        },
         // 创建echarts对象
         createChart(container, data) {
-            console.log(data);
             let chart = new G2.Chart({
                 container: container,
                 forceFit: true,
+                autoFit: true,
                 height: 500,
-                width: 1000,
+                // width: 1000,
                 padding: [50],
                 background: {
                     fill: "#fff"
                 }
             });
             chart.source(data);
-            chart.scale({
-                value: {
-                    min: 1,
-                    alias: "数量"
-                },
-                year: {
-                    range: [0, 1]
-                }
+            chart.scale('value', {
+                nice: true,
             });
-            chart.axis('value', {
-                label: {
-                    formatter(val) {
-                    return (val) + '次';
-                    }
-                }
-            });
+
             chart.tooltip({
-                crosshairs: {
-                    type: 'cross'
-                }
+                showMarkers: false
             });
-            chart.area().position('week*value');
-            chart.line().position('week*value');
+            chart.interaction('active-region');
+
+            chart.interval().position('week*value');
+
+
+            // chart.source(data);
+            // chart.axis('value', {
+            //     label: {
+            //         formatter(val) {
+            //         return (val) + '次';
+            //         }
+            //     }
+            // });
+            // chart.scale({
+            //     value: {
+            //         min: 0
+            //     }
+            // })
+            // chart.tooltip({
+            //     crosshairs: {
+            //         type: 'cross'
+            //     }
+            // });
+            // chart.area().position('week*value');
+            // chart.line().position('week*value');
             chart.render();
         },
         // 查询

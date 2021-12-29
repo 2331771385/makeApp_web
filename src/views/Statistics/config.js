@@ -14,4 +14,18 @@ export function currentTime() {
 	var beforeWeek = beforeTimeYear + '-' + beforeTimeMonth + '-' + beforeTimeDay;
     
     return [beforeWeek, currentDate];
-}
+};
+export const typeList = [
+    {
+        id: 3,
+        value: '建筑类型'
+    },
+    {
+        id: 4,
+        value: '单位类型'
+    },
+    {
+        id: 5,
+        value: '服务类型'
+    }
+]

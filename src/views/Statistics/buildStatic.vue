@@ -16,6 +16,17 @@
                 </el-select>
             </el-form-item>
             <el-form-item>
+                <el-select v-model="queryParams.typeId">
+                    <el-option
+                        v-for="item in typeList"
+                        :key="item.id"
+                        :value="item.id"
+                        :label="item.value"
+                    >
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="操作日期">
                 <el-date-picker
                     v-model="queryParams.date"
                     type="daterange"
@@ -38,16 +49,19 @@
 </template>
 <script>
 import * as G2 from '@antv/g2'; 
-import { currentTime } from './config'
+import { currentTime, typeList } from './config'
 import { listCampus } from "@/api/campus/campus";
+import { listTbVisiLogAll } from '@/api/statistic/TbVisiLog'
 
 export default {
     data() {
         return {
              queryParams: {
                 date: currentTime(),
-                campusId: 1
+                campusId: 1,
+                typeId: 3
             },
+            typeList,
             chartId: 'chart' + +new Date() + ((Math.random() * 1000).toFixed(0) + ''),
             chartData: [
                 {
@@ -92,6 +106,7 @@ export default {
     },
     created() {
         this.getCampusList();
+        this.getBuildData();
     },
     mounted() {
         this.createChart(this.chartId, this.chartData);
@@ -108,10 +123,23 @@ export default {
                         value: item.campusname
                     })
                 });
+
             }).catch(err => {
                 this.$message.error('获取数据失败!');
             });
         },
+        async getBuildData() {
+            let data = {
+                startTime: this.queryParams.date[0],
+                endTime: this.queryParams.date[1],
+                visiType: 2,
+                campusId: this.queryParams.campusId
+            }
+            let listTbVisi = await listTbVisiLogAll(data);
+            this.chartData = listTbVisi.data
+            console.log(this.chartData);
+        },
+
         createChart(container, data) {
             let chart = new G2.Chart({
                 container: container,
