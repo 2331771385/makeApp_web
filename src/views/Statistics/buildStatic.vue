@@ -85,15 +85,14 @@ export default {
                     value: 1
                 }
             ],
-            campusList: []
+            campusList: [],
+            chart: null,
+            chartDraw: true
         }
     },
     created() {
         this.getCampusList();
         this.getBuildData();
-    },
-    mounted() {
-        this.createChart(this.chartId, this.chartData);
     },
     methods: {
         getCampusList() {
@@ -120,45 +119,63 @@ export default {
                 campusId: this.queryParams.campusId,
             }
             let listTbVisi = await listTbVisiLogAll(data);
-            this.chartData = listTbVisi.data
+            this.chartData = listTbVisi.data;
             console.log(this.chartData);
+            if (this.chartDraw) {
+                this.createChart(this.chartData);
+            } else {
+                this.chart.changeData(this.chartData);
+            }
         },
 
-        createChart(container, data) {
-            let chart = new G2.Chart({
-                container: container,
+        createChart(data) {
+            this.chart = new G2.Chart({
+                container: this.chartId,
                 height: 500,
                 autoFit: true,
-                padding: [50],
+                // padding: [50],
                 background: {
                     fill: "#fff"
                 }
             });
-            chart.source(data);
-            chart.scale({
-                value: {
-                    min: 10000,
-                    alias: "数量"
-                },
-                week: {
-                    range: [0, 1]
-                }
+            this.chart.source(data);
+            this.chart.scale('value', {
+                nice: true,
+                min: 0,
+                range: [0, 1]
             });
-            chart.axis('value', {
+
+            this.chart.tooltip({
+                showCrosshairs: true,
+                shared: true,
+            });
+
+            this.chart.axis('value', {
                 label: {
                     formatter(val) {
-                    return (val) + '次';
+                        return (val) + '次';
                     }
                 }
             });
-            chart.tooltip({
-                crosshairs: {
-                    type: 'cross'
-                }
-            });
-            chart.area().position('week*value');
-            chart.line().position('week*value');
-            chart.render();
+            this.chart
+                .line()
+                .position('week*value')
+                .color('poiName')
+                .shape('smooth');
+
+            this.chart
+                .point()
+                .position('week*value')
+                .color('poiName')
+                .shape('circle')
+                .style({
+                    stroke: '#fff',
+                    lineWidth: 1,
+                });
+            // this.chart.area().position('week*value');
+            // this.chart.line().position('week*value');
+            this.chart.render();
+            this.chartDraw = false;
         },
         // 查询
         handleQuery() {

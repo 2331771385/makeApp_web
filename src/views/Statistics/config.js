@@ -3,6 +3,8 @@ export function currentTime() {
 	var year = myDate.getFullYear();
 	var month = myDate.getMonth() + 1;
 	var dates = myDate.getDate();
+    month = month < 10 ? '0' + month : month;
+    dates = dates < 10 ? '0' + dates : dates;
 	var currentDate = year + "-" + month + "-" + dates;
 
     let beforeTime = new Date(myDate.getTime() - 24 * 60 * 60 * 1000 * 7); //一个周前

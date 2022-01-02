@@ -38,7 +38,9 @@ export default {
                 typeId: 3
             },
             chartId: 'chart' + +new Date() + ((Math.random() * 1000).toFixed(0) + ''),
-            chartData: []
+            chartData: [],
+            chart: null,
+            firstDraw: true
         }
     },
     created() {
@@ -52,18 +54,20 @@ export default {
                 visiType: 1
             }).then(res => {
                 this.chartData = res.data;
-                this.createChart(this.chartId, this.chartData);
+                if (this.firstDraw) {
+                    this.createChart(this.chartData);
+                } else {
+                    this.chart.changeData(this.chartData);
+                }
+                
             }).catch(err => {
                 this.$message.error('获取数据失败！')
             })
         },
         // 创建echarts对象
-        createChart(container, data) {
-            data.forEach(item => {
-                console.log(item.week);
-            })
-            let chart = new G2.Chart({
-                container: container,
+        createChart(data) {
+            this.chart = new G2.Chart({
+                container: this.chartId,
                 autoFit: true,
                 height: 500,
                 padding: [50],
@@ -71,8 +75,8 @@ export default {
                     fill: "#fff"
                 }
             });
-            chart.data(data);
-            chart.scale({
+            this.chart.data(data);
+            this.chart.scale({
                 value: {
                     min: 0,
                     nice: true,
@@ -81,12 +85,12 @@ export default {
                     range: [0, 1]
                 }
             });
-            chart.tooltip({
+            this.chart.tooltip({
                 showCrosshairs: true,
                 shared: true,
             });
 
-            chart.axis('value', {
+            this.chart.axis('value', {
                 label: {
                     formatter: (val) => {
                         return (val) + '次';
@@ -94,38 +98,15 @@ export default {
                 },
             });
 
-            chart.area().position('week*value');
-            chart.line().position('week*value');
+            this.chart.area().position('week*value');
+            this.chart.line().position('week*value');
 
-            chart.render();
-
-
-
-            // chart.source(data);
-            // chart.axis('value', {
-            //     label: {
-            //         formatter(val) {
-            //         return (val) + '次';
-            //         }
-            //     }
-            // });
-            // chart.scale({
-            //     value: {
-            //         min: 0
-            //     }
-            // })
-            // chart.tooltip({
-            //     crosshairs: {
-            //         type: 'cross'
-            //     }
-            // });
-            // chart.area().position('week*value');
-            // chart.line().position('week*value');
-            // chart.render();
+            this.chart.render();
+            this.firstDraw = false;
         },
         // 查询
         handleQuery() {
-
+            this.getData();
         },
         // 重置
         resetQuery() {

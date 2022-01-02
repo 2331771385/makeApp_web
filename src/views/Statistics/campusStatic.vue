@@ -34,7 +34,9 @@ export default {
             chartData: [],
             queryParams: {
                 date: currentTime()
-            }
+            },
+            chart: null,
+            firstDraw: true
         }
     },
     created() {
@@ -48,13 +50,17 @@ export default {
                 visiType: 2
             }
             let listTbVisi = await listTbVisiLogAll(data);
-            this.chartData = listTbVisi.data
-            this.createChart(this.chartId, this.chartData);
+            this.chartData = listTbVisi.data;
+            if (this.firstDraw) {
+                this.createChart(this.chartData);
+            } else {
+                this.chart.changeData(this.chartData);
+            }
         },
         
-        createChart(container, data) {
-            let chart = new G2.Chart({
-                container: container,
+        createChart(data) {
+            this.chart = new G2.Chart({
+                container: this.chartId,
                 forceFit: true,
                 height: 500,
                 width: 1000,
@@ -62,33 +68,44 @@ export default {
                     fill: "#fff"
                 }
             });
-            chart.source(data);
-            chart.scale('value', {
+            this.chart.source(data);
+            this.chart.scale('value', {
                 nice: true,
+                min: 0
             });
 
-            chart.tooltip({
+            this.chart.tooltip({
                 showCrosshairs: true,
                 shared: true,
             });
+            this.chart.axis('value', {
+                label: {
+                    formatter(val) {
+                        return (val) + '次';
+                    }
+                }
+            });
+            this.chart
+                .line()
+                .position('week*value')
+                .color('campusName')
+                .shape('smooth');
 
-            chart
-            .area()
-            .adjust('stack')
-            .position('week*value')
-            .color('campusName');
-            chart
-            .line()
-            .adjust('stack')
-            .position('week*value')
-            .color('campusName');
-
-            chart.interaction('element-highlight');
-            chart.render()
+            this.chart
+                .point()
+                .position('week*value')
+                .color('campusName')
+                .shape('circle')
+                .style({
+                    stroke: '#fff',
+                    lineWidth: 1,
+                });
+            this.chart.render();
+            this.firstDraw = true;
         },
         // 查询
         handleQuery() {
-
+            this.getCampusData();
         },
         // 重置
         resetQuery() {
