@@ -513,20 +513,3 @@ export default {
   }
 };
 </script>
-<style lang='scss'>
-.formItem {
-  .el-form-item {
-    width: 340px !important;
-  }
-}
-
-.el-dialog__header {
-  background: #1890ff ;
-}
-.el-dialog__title {
-  color: #fff;
-}
-.el-icon-close:before {
-  color: #fff;
-}
-</style>

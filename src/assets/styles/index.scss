@@ -189,3 +189,14 @@ aside {
 .multiselect--active {
   z-index: 1000 !important;
 }
+.el-dialog__title {
+  color: #fff;
+  display: block;
+  text-align: center;
+}
+.el-dialog__header {
+  background: #1890ff ;
+}
+.el-icon-close:before {
+  color: #fff;
+}

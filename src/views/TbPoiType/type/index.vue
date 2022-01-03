@@ -305,16 +305,3 @@ export default {
   }
 };
 </script>
-<style>
-.el-dialog__title {
-  color: #fff;
-  display: block;
-  text-align: center;
-}
-.el-dialog__header {
-  background: #1890ff ;
-}
-.el-icon-close:before {
-  color: #fff;
-}
-</style>
