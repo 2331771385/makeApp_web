@@ -120,7 +120,6 @@ export default {
             }
             let listTbVisi = await listTbVisiLogAll(data);
             this.chartData = listTbVisi.data;
-            console.log(this.chartData);
             if (this.chartDraw) {
                 this.createChart(this.chartData);
             } else {

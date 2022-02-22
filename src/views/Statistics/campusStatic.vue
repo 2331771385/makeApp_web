@@ -61,9 +61,9 @@ export default {
         createChart(data) {
             this.chart = new G2.Chart({
                 container: this.chartId,
-                forceFit: true,
+                // forceFit: true,
                 height: 500,
-                width: 1000,
+                autoFit: true,
                 background: {
                     fill: "#fff"
                 }
@@ -101,7 +101,7 @@ export default {
                     lineWidth: 1,
                 });
             this.chart.render();
-            this.firstDraw = true;
+            this.firstDraw = false;
         },
         // 查询
         handleQuery() {
