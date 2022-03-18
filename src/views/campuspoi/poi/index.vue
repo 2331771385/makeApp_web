@@ -201,6 +201,22 @@
             <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
           </el-upload>
         </el-form-item>
+        <el-form-item label="全景图经度:">
+          <el-input v-model="form.pic720defaultlng" placeholder="请输入经度" />
+        </el-form-item>
+        <el-form-item label="全景图纬度:">
+          <el-input v-model="form.pic720defaultlat" placeholder="请输入纬度" />
+        </el-form-item>
+        <el-form-item label="全景图:">
+          <el-upload 
+            ref="pic720url" 
+            :on-success="uploadSuccess1"
+            :file-list="fileList1" 
+            :action="fileAction"
+            :before-upload="field101BeforeUpload">
+            <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
+          </el-upload>
+        </el-form-item>
         <el-form-item label="官网url:">
           <el-input v-model="form.weburl" placeholder="请输入官网地址" />
         </el-form-item>
@@ -249,6 +265,7 @@ export default {
       },
       fileAction: '/dev-api/common/upload',
       fileList: [],
+      fileList1: [],
       typeList: [], // 位置点类型数据
       parentChildren: [
         {
@@ -307,7 +324,8 @@ export default {
       // 表单参数
       form: {},
       bindVal: '出入门',
-      imgUrl: ''
+      imgUrl: '',
+      pic720url: '',
     };
   },
   created() {
@@ -347,10 +365,14 @@ export default {
       this.imgUrl = res.fileName;
       this.form.picurls = res.fileName
     },
+    uploadSuccess1(res) {
+      this.pic720url = res.fileName;
+      this.form.pic720url = res.fileName
+    },
     field101BeforeUpload(file) {
-      let isRightSize = file.size / 1024 / 1024 < 2
+      let isRightSize = file.size / 1024 / 1024 < 10
       if (!isRightSize) {
-        this.$message.error('文件大小超过 2MB')
+        this.$message.error('文件大小超过 10MB')
       }
       return isRightSize
     },
@@ -433,7 +455,7 @@ export default {
         cameraview: null,
         coverpicurl: null,
         picurls: this.imgUrl,
-        pic720url: null,
+        pic720url: this.pic720url,
         pic720defaultlng: null,
         pic720defaultlat: null,
         videourl: null,

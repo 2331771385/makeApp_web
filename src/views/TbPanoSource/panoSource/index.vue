@@ -73,7 +73,7 @@
       </el-table-column>
       <el-table-column label="资源图片" align="center" prop="sourceurl">
         <template slot-scope="scope">
-          <img :src="scope.row.sourceurl">
+          <img style="width:32px;height:32px" :src="scope.row.sourceurl">
         </template>
       </el-table-column>
       <el-table-column label="大小" align="center" prop="sourcesize" />
@@ -249,9 +249,9 @@ export default {
       this.form.sourceurl = res.url;
     },
     field101BeforeUpload(file) {
-      let isRightSize = file.size / 1024 / 1024 < 2
+      let isRightSize = file.size / 1024 / 1024 < 10
       if (!isRightSize) {
-        this.$message.error('文件大小超过 2MB')
+        this.$message.error('文件大小超过 10MB')
       }
       return isRightSize
     },
